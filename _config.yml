@@ -17,7 +17,7 @@ author:
   username: storm # general username
   github: storm-0rigin # github username
   twitter: # twitter username
-  mastodon: hachyderm.io/@davidebri # mastodon profile (ex. mastodon.social/@my_username)
+  mastodon: # mastodon profile (ex. mastodon.social/@my_username)
   linkedin: # linkedin profile
   email: storm85851@ajou.ac.kr # email adress
 
