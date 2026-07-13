@@ -1,31 +1,27 @@
 ---
 ---
 $baseurl: "{{ site.baseurl }}";
+$font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'Courier New', monospace;
 
 html, body {
   margin:0;
   padding:0;
+  background:#0a0e0a;
 }
 
-.fonts-loaded {
-  a, span, p { font-family:"Nunito Sans", 'Lucida Sans', sans-serif; }
-  h1, h2, h3 { font-family:"Lato", Helvetica, sans-serif; }
-  mark { font-family:'Righteous', sans-serif; }
+a, span, p, h1, h2, h3, i, mark {
+  font-family:$font-mono;
 }
 
 a { text-decoration:none; }
-a, span, p, h1, h2, h3, i { color:#3A241A; }
-a, span, p { font-family:'Lucida Sans', sans-serif; }
-h1, h2, h3, mark {
-  margin:0;
-  font-family:Helvetica, sans-serif;
-}
+a, span, p, h1, h2, h3, i { color:#c9d9c9; }
+h1, h2, h3, mark { margin:0; }
 mark { background-color:transparent; }
 
 svg {
   width:16px;
   aspect-ratio:1.0;
-  fill:#3A241A;
+  fill:#c9d9c9;
   display:block;
   margin:auto;
 }
@@ -63,4 +59,3 @@ input::-webkit-search-results-decoration{
 @import "toc";
 @import "post";
 @import "search";
-@import "darkmode";

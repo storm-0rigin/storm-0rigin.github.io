@@ -5,14 +5,18 @@
 }
 
 .toc-header {
-  font-size:1.25rem;
-  font-weight:600;
+  font-size:1rem;
+  font-weight:500;
   padding:0 0 4px 12px;
-  border-bottom:burlywood 2px solid;
+  border-bottom:1px solid $color-border;
+  color:$color-accent;
 
-  svg { 
+  &::before { content:"$ "; color:$color-dim; }
+
+  svg {
     width:16px;
     display:inline-flex;
+    fill:$color-dim;
     transform:translateY(2px);
   }
 }
@@ -23,16 +27,19 @@
 }
 
 .toc-board, .toc-list {
-  font-size:1.125rem;
+  font-size:1rem;
   padding:0;
   margin: 0 auto;
 
-  li a { display:inline-block; }
+  li a {
+    display:inline-block;
+    color:$color-dim;
+  }
   li:last-child { margin-bottom:0; }
 
   .node-name--H1 { margin-top:8px; }
   .node-name--H2 {
-    font-size:1rem;
+    font-size:0.875rem;
     margin-top:6px;
     padding-left:16px;
   }
@@ -41,9 +48,12 @@
     word-break:normal;
     line-height:150%;
 
-    a { 
+    a {
       animation:.5s ease-out 0s 1 slide;
       cursor: pointer;
+      transition:.2s;
+
+      &:hover { color:$color-accent; }
     }
 
     @keyframes slide {
@@ -51,10 +61,10 @@
       100% { transform:scaleY(1); }
     }
   }
-   
+
   .is-active-link{
-    color:indianred !important;
-    font-weight:950;
+    color:$color-accent !important;
+    font-weight:600;
   }
 }
 

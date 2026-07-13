@@ -9,58 +9,46 @@
 
 .sidebar-left {
   display:flex;
-  background-color:$color-beige;
+  background-color:$color-panel;
+  border-bottom:1px solid $color-border;
 }
 
 .side-banner {
   width:100%;
   text-align:center;
-  box-shadow:0px 4px 8px 0 #aaa;
+  position:relative;
 
   button {
     position:absolute;
-    background-color:$color-beige;
+    background-color:transparent;
     height:100%;
     aspect-ratio:1;
     top:0;
+    color:$color-accent;
 
-    svg { width:20px; }
+    svg { width:20px; fill:$color-dim; }
 
-    &:hover { background-color:rgba(212, 201, 191, 0.7); }
+    &:hover svg { fill:$color-accent; }
   }
   #btn-nav { right:0; }
   #btn-search { right:38px; }
-  #btn-brightness { right:76px; }
-
-  .ico-dark {
-    display:block;
-    &.active{ display:none; }
-  }
-  .ico-light {
-    display:none;
-    &.active{ display:block; }
-  }
 }
-
-.site-tab img { display: none; }
 
 .site-avatar {
   img {
     display:none;
-    width:9rem;
+    width:8rem;
     aspect-ratio:1;
-    border-radius:50%;
-    outline:4.5rem solid rgba(64,64,64,0.5);
-    outline-offset:-4.5rem;
+    border-radius:4px;
+    border:2px solid $color-border;
+    filter:grayscale(0.3);
     transition:.3s;
 
     &:hover {
-      outline:4px solid orange;
-      outline-offset:8px;
+      border-color:$color-accent;
+      box-shadow:0 0 16px rgba(57, 255, 143, 0.35);
     }
   }
-
-  img + img { border-radius:50%; }
 }
 
 .site-tab {
@@ -69,12 +57,31 @@
   text-align:left;
   position:relative;
 
-  a, span { letter-spacing:2px; }
+  a, span { letter-spacing:0.5px; }
 }
 
 .side-info {
   position:relative;
   width:100%;
+}
+
+.site-name {
+  mark {
+    color:$color-accent;
+    font-weight:500;
+
+    &::before {
+      content:"guest@storm:~$ ";
+      color:$color-dim;
+    }
+
+    &::after {
+      content:"\2588";
+      margin-left:4px;
+      color:$color-accent;
+      animation:blink-cursor 1.1s step-end infinite;
+    }
+  }
 }
 
 #contact{
@@ -87,8 +94,9 @@
 
   &.contact-open { display:block; }
 
-  hr { 
+  hr {
     border:0;
+    border-top:1px solid $color-border;
     margin:0;
   }
 
@@ -113,20 +121,20 @@
 
         svg {
           width:16px;
-          fill:dimgrey;
+          fill:$color-dim;
         }
 
         &:hover{
-          svg { fill:orange; }
+          svg { fill:$color-accent; }
 
-          transform:scale(1.5) translateY(-12.5%);
+          transform:scale(1.25) translateY(-12.5%);
         }
       }
     }
   }
 
-  span { font-size:0.875rem; }
-  a { color:$color-darkorange; }
+  span { font-size:0.875rem; color:$color-dim; }
+  a { color:$color-accent; }
 }
 
 .sidebar-right{ display:none; }
@@ -139,50 +147,25 @@
     width:2.75rem;
     aspect-ratio:1;
     text-align:center;
-    background:#ffe390;
-    border:none;
-    border-radius:50%;
+    background:$color-panel;
+    border:1px solid $color-border;
+    border-radius:4px;
     margin-left:1rem;
     position:relative;
     vertical-align:top;
     cursor:pointer;
+    transition:.2s;
 
     &:hover {
-      border:2px solid midnightblue;
-      animation:leaves .75s ease-in-out infinite alternate;
-    }
-  }
-
-  @keyframes leaves {
-    0% {
-      transform:scale(1.0);
-      background:#ffe390;
-    }
-    100% {
-      transform:scale(1.25);
-      background:#ffd044;
+      border-color:$color-accent;
+      box-shadow:0 0 12px rgba(57, 255, 143, 0.3);
     }
   }
 
   svg {
-    fill:#3A241A !important;
-    width:24px;
+    fill:$color-accent !important;
+    width:20px;
     position:relative;
-    transition:all .3s;
-  }
-  .ico-dark, .ico-light { 
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
-  }
-  .ico-dark {
-    transform:translate(-50%, -50%) scale(1);
-    &.active{ transform:translate(-50%, -50%) scale(0); }
-  }
-  .ico-light {
-    transform:translate(-50%, -50%) scale(0);
-    &.active{ transform:translate(-50%, -50%) scale(1); }
   }
 }
 
@@ -191,12 +174,11 @@
 .side-banner {
   button { font-size:1.75rem; }
   #btn-search { right:60px; }
-  #btn-brightness { right:120px; }
 }
 
-.site-tab { 
+.site-tab {
   padding:1rem;
-  font-size:1.375rem; 
+  font-size:1.375rem;
 }
 
 #contact {
@@ -215,61 +197,29 @@
   flex-flow:column nowrap;
   width:#{$sidebarwd};
   min-height:100%;
-  background:none;
+  background:$color-panel;
+  border-bottom:none;
+  border-right:1px solid $color-border;
   align-items:flex-end;
 }
 
 .side-banner{
   width:#{$sidebarwd};
-  box-shadow:none !important;
 
   button {
     display:none;
     font-size:1.5rem;
   }
   #btn-search { right:69px; }
-  #btn-brightness { right:138px; }
 }
 
 .site-avatar img { display:inline-block; }
 
 .site-tab {
-  font-size:1.375rem;
+  font-size:1.25rem;
   padding:1rem;
   text-align:center;
   position:relative;
-}
-
-.site-name {
-  position:relative;
-
-  img, mark { transition:.5s ease; }
-  mark { 
-    color:$color-wenge;
-    word-break:break-word;
-  }
-
-  img {
-    display:inline-block;
-    width:32px;
-    height:32px;
-    top:-4px;
-    left:0;
-    left:-40px;
-    position:absolute;
-    transform:rotateY(90deg);
-  }
-
-  &:hover {
-    mark { 
-      color:$color-rose;
-      margin-left:40px;
-    }
-    img { 
-      left:0;
-      transform:rotateY(360deg); 
-    }
-  }
 }
 
 .side-info {
@@ -285,8 +235,8 @@
   padding:1rem 2rem;
   transform:none;
 
-  hr { 
-    border-top:1px solid lightgrey;
+  hr {
+    border-top:1px solid $color-border;
     margin:8px;
   }
 
@@ -295,10 +245,12 @@
     position:absolute;
     margin:0;
     top:14px;
-    font-size:1rem;
+    font-size:0.875rem;
+    color:$color-dim;
     transform:translateX(-50%);
     left:50%;
-    background-color:#fff; 
+    background-color:$color-panel;
+    padding:0 8px;
   }
 }
 

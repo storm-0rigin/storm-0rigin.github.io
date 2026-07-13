@@ -1,22 +1,6 @@
 var baseurl = document.querySelector('meta[name="baseurl"]').content;
 
 document.addEventListener('DOMContentLoaded', function(){
-    // Init theme
-    let currentTheme = localStorage.getItem('theme');
-    let isDarkMode = false;
-
-    if (currentTheme === 'dark'){
-        isDarkMode = true;
-        const themeIcons = document.querySelectorAll(".ico-dark, .ico-light");
-
-        themeIcons.forEach((ico) => {
-            ico.classList.add('active');
-        });
-    }
-    else {
-        isDarkMode = false;
-    }
-
     // navigation (mobile)
     var siteNav = document.querySelector('#navigation');
     var siteContact = document.querySelector('#contact');
@@ -83,66 +67,6 @@ document.addEventListener('DOMContentLoaded', function(){
             nav_item.classList.remove('selected');
         }
     });
-
-    // Change Datk/Light Theme
-    const themeButton = document.querySelectorAll("#btn-brightness");
-    const innerContent = document.querySelector('main');
-
-    themeButton.forEach((btn) => {
-        btn.addEventListener('click', function() {
-            const moonIcons = document.querySelectorAll(".ico-dark");
-            const sunIcons = document.querySelectorAll(".ico-light");
-            const codeblocks = innerContent != null ? innerContent.querySelectorAll('pre') : null;
-
-            moonIcons.forEach((ico) => {
-                ico.classList.toggle('active');
-            });
-
-            sunIcons.forEach((ico) => {
-                ico.classList.toggle('active');
-            });
-
-            document.body.classList.toggle('dark-theme');
-
-            if (isDarkMode){
-                localStorage.setItem('theme', 'default');
-                // Disable highlighter dark color theme
-                if (codeblocks) {
-                    Array.from(codeblocks).forEach(function (codeblock){
-                        codeblock.classList.remove('pre-dark');
-                    });
-                }
-
-                changeGiscusTheme('light');
-                isDarkMode = false;
-            }
-            else {
-                localStorage.setItem('theme', 'dark');
-                // Disable highlighter default color theme
-                if (codeblocks) {
-                    Array.from(codeblocks).forEach(function (codeblock){
-                        codeblock.classList.add('pre-dark');
-                    });
-                }
-
-                changeGiscusTheme('noborder_gray');
-                isDarkMode = true;
-            }
-        });
-    });
-
-    function changeGiscusTheme(theme) {
-        const iframe = document.querySelector('iframe.giscus-frame');
-        if (!iframe) return;
-
-        const message = {
-            setConfig: {
-                theme: theme
-            }
-        };
-
-        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-    }
 
     // search box
     const searchButton = document.querySelectorAll("#btn-search");

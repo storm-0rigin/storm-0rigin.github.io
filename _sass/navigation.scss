@@ -5,7 +5,7 @@
 
   &.nav-open {
     display: block;
-    border-top: 1px solid dimgrey;
+    border-top: 1px solid $color-border;
   }
 }
 
@@ -18,7 +18,8 @@
 
     > .nav-list {
       padding-left: 18px;
-      background: #eee;
+      background: $color-bg;
+      border-left: 1px solid $color-border;
 
       transition:
         max-height 0.5s ease-in-out,
@@ -47,24 +48,27 @@
     margin-right: 8px;
     display: inline-block;
     vertical-align: middle;
+    fill: $color-dim;
   }
 }
 
 .nav-item {
   position: relative;
   padding: 12px;
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px solid $color-border;
 
   &.selected {
     span {
-      font-weight: 600;
-      text-decoration: underline;
+      color: $color-accent;
+      font-weight: 500;
     }
   }
 
   a {
     font-weight: 400;
   }
+
+  span::before { content: "> "; color: $color-dim; }
 }
 
 .nav-list-link {
@@ -95,7 +99,7 @@
   &:hover {
     transform: scale(1.25);
     svg {
-      fill: $color-darkorange;
+      fill: $color-accent;
     }
   }
 }
@@ -103,7 +107,7 @@
 .nav-lh svg {
   margin-left: -0.25rem;
   position: relative;
-  fill: $color-darkorange;
+  fill: $color-accent;
   transform: translateY(-2px);
 }
 .nav-sh svg {
@@ -146,10 +150,10 @@
 
     &::-webkit-scrollbar {
       width: 4px;
-      background-color: #aaa;
+      background-color: $color-bg;
     }
     &::-webkit-scrollbar-thumb {
-      background-color: rosybrown;
+      background-color: $color-border;
     }
   }
 
@@ -162,6 +166,7 @@
   }
   .nav-list li > .nav-list {
     background: none;
+    border-left: 1px solid $color-border;
   }
   .nav-list-link {
     display: flex;
@@ -170,11 +175,11 @@
 
     &:hover {
       span {
-        font-weight: 600;
-        text-decoration: underline;
+        color: $color-accent;
+        font-weight: 500;
       }
 
-      transform: scale(0.9);
+      transform: scale(0.97);
     }
   }
 
@@ -184,15 +189,13 @@
       position: absolute;
       display: block;
       left: 0;
-      border-radius: 1.5rem;
-      background: rgba(gold, 0.375);
-      // width:3rem;
-      // height:3rem;
+      border-radius: 2px;
+      background: rgba(57, 255, 143, 0.08);
       transition: 0.3s;
     }
     &:hover:before {
       width: 105%;
-      background: gold;
+      background: rgba(57, 255, 143, 0.12);
     }
 
     svg {
