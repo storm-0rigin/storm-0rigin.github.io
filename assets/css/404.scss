@@ -4,7 +4,7 @@
 body {
   margin:0;
   min-height:100vh;
-  background:#0a0e0a;
+  background:#0a0a0a;
   font-family:'JetBrains Mono', ui-monospace, Menlo, Consolas, 'Courier New', monospace;
 }
 
@@ -21,23 +21,23 @@ body {
     text-decoration:none;
     margin-left:5vw;
     font-size:1rem;
-    color:#5f6f5f;
+    color:#5c5c5c;
 
-    &::before { content:"$ "; color:#39ff8f; }
+    &::before { content:"$ "; color:#f2f2f2; }
 
-    &:hover { color:#39ff8f; }
+    &:hover { color:#f2f2f2; }
   }
 
   .not-found-msg {
     text-align:center;
-    color:#c9d9c9;
+    color:#b8b8b8;
   }
 
   .sour-face {
     margin:2rem auto;
     font-size:1.125rem;
     line-height:1.6;
-    color:#ff5555;
+    color:#d8d8d8;
     white-space:pre;
     text-align:left;
     display:inline-block;

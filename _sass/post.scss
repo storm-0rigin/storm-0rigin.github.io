@@ -101,7 +101,7 @@
   &:hover {
     border-color:$color-accent;
     color:$color-accent;
-    box-shadow:0 0 12px rgba(57, 255, 143, 0.25);
+    box-shadow:0 0 12px rgba(255, 255, 255, 0.15);
 
     svg { fill:$color-accent; }
   }
@@ -410,7 +410,7 @@ main {
 
     &:hover {
       border-color:$color-accent;
-      box-shadow:0 0 20px rgba(57, 255, 143, .2);
+      box-shadow:0 0 20px rgba(255, 255, 255, .12);
 
       -webkit-transform:scale(1.03);
       -moz-transform:scale(1.03);

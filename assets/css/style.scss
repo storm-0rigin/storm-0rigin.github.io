@@ -3,10 +3,12 @@
 $baseurl: "{{ site.baseurl }}";
 $font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'Courier New', monospace;
 
+@import 'vars';
+
 html, body {
   margin:0;
   padding:0;
-  background:#0a0e0a;
+  background:$color-bg;
 }
 
 a, span, p, h1, h2, h3, i, mark {
@@ -14,14 +16,14 @@ a, span, p, h1, h2, h3, i, mark {
 }
 
 a { text-decoration:none; }
-a, span, p, h1, h2, h3, i { color:#c9d9c9; }
+a, span, p, h1, h2, h3, i { color:$color-text; }
 h1, h2, h3, mark { margin:0; }
 mark { background-color:transparent; }
 
 svg {
   width:16px;
   aspect-ratio:1.0;
-  fill:#c9d9c9;
+  fill:$color-text;
   display:block;
   margin:auto;
 }
@@ -46,7 +48,6 @@ input::-webkit-search-results-decoration{
 	display:none;
 }
 
-@import 'vars';
 @import 'layout';
 
 :root{
