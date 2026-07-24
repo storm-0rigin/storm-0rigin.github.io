@@ -15,10 +15,10 @@ memmove(PoolWithTag, UserBuffer, Size);                            // Size = 유
 ```
 
 1. 커널 버퍼는 `0x1F0` 고정인데 `memmove`의 `Size`가 유저 통제
-2. **경계 검사 없음**. `Size > 0x1F0`이면 인접 청크로 넘침
+2. 경계 검사 없음. `Size > 0x1F0`이면 인접 청크로 넘침
 
 - 청크 총 크기 = `0x1F0 + 0x10(POOL_HEADER) = 0x200`
-- 덮을 수 있는 것 = **바로 뒤 청크의 헤더 + 데이터**
+- 덮을 수 있는 것 = 바로 뒤 청크의 헤더 + 데이터
 
 ---
 
@@ -46,7 +46,7 @@ memmove(PoolWithTag, UserBuffer, Size);                            // Size = 유
 
 ### 3.1 WriteFile 하나 = 풀 할당 하나
 
-파이프는 "쓴 데이터를 **읽기 전까지 커널이 보관**"해야 함. 그 보관 장소가 NonPagedPoolNx 청크(`NP_DATA_QUEUE_ENTRY`).
+파이프는 "쓴 데이터를 읽기 전까지 커널이 보관"해야 함. 그 보관 장소가 NonPagedPoolNx 청크(`NP_DATA_QUEUE_ENTRY`).
 
 ```
 npfs!NpAddDataQueueEntry:
@@ -56,7 +56,7 @@ npfs!NpAddDataQueueEntry:
     파이프의 DataQueue에 연결
 ```
 
-즉 유저모드 `WriteFile` 한 줄 = 커널 풀에 청크 alloc + 내 데이터로 채움. 청크 총 크기 = `VS(0x10) + POOL(0x10) + NDQE(0x30) + 데이터(N)` → **write 바이트 수로 청크 크기를 정확히 제어** 가능.
+즉 유저모드 `WriteFile` 한 줄 = 커널 풀에 청크 alloc + 내 데이터로 채움. 청크 총 크기 = `VS(0x10) + POOL(0x10) + NDQE(0x30) + 데이터(N)` → write 바이트 수로 청크 크기를 정확히 제어 가능.
 
 > 리더가 이미 대기 중이면 데이터를 그 버퍼로 바로 복사하고 할당 안 함. 그루밍에선 동시 read를 안 하니 매 write마다 할당됨.
 
@@ -66,9 +66,9 @@ npfs!NpAddDataQueueEntry:
 
 | 유저모드 호출          | 커널 동작                       | 힙 관점           |
 | ---------------------- | ------------------------------- | ----------------- |
-| `WriteFile(N)`         | NDQE 청크 alloc + 데이터 채움   | **malloc**        |
-| `ReadFile` (전부 소비) | 큐에서 빼고 `ExFreePoolWithTag` | **free**          |
-| `PeekNamedPipe`        | 데이터 복사만 (소비 X)          | **read (비파괴)** |
+| `WriteFile(N)`         | NDQE 청크 alloc + 데이터 채움   | malloc        |
+| `ReadFile` (전부 소비) | 큐에서 빼고 `ExFreePoolWithTag` | free          |
+| `PeekNamedPipe`        | 데이터 복사만 (소비 X)          | read (비파괴) |
 
 이 세 개로 풀을 원하는 크기로 채우고(spray), 골라서 뚫고(hole), 내용을 다시 읽어올(peek) 수 있음.
 
@@ -88,7 +88,7 @@ NP_DATA_QUEUE_ENTRY:
   +0x30 data           ← WriteFile로 제어하는 유일한 부분
 ```
 
-문제: **metadata(Irp/EntryType)는 커널 소유**. `WriteFile`은 `data`만 바꾸기 때문에 정상 파이프론 임의읽기 불가능.
+문제: metadata(Irp/EntryType)는 커널 소유. `WriteFile`은 `data`만 바꾸기 때문에 정상 파이프론 임의읽기 불가능.
 
 ### 4.2 CacheAligned Confusion을 통한 청크 겹침 유도
 
@@ -99,9 +99,9 @@ overflow_chunk.pool_header.PoolType     = 0x4;   // CacheAligned 위조로 정�
 overflow_chunk.pool_header.PreviousSize = 0x1D;  // 앞 청크 역산값 위조
 ```
 
-free 시 커널은 CacheAligned를 보고 **청크 base를 재계산**, `PreviousSize`로 **앞 청크를 역산**해서 coalescing 하려 함. 둘 다 가짜라 경계를 오산시켜 free-list에 **이전 청크까지 덮는 어긋난 빈 블록**이 등록됨.
+free 시 커널은 CacheAligned를 보고 청크 base를 재계산, `PreviousSize`로 앞 청크를 역산해서 coalescing 하려 함. 둘 다 가짜라 경계를 오산시켜 free-list에 이전 청크까지 덮는 어긋난 빈 블록이 등록됨.
 
-그 크기로 재할당하면 **이전 청크와 물리적으로 겹치는 유령 청크(ghost)** 생성.
+그 크기로 재할당하면 이전 청크와 물리적으로 겹치는 유령 청크(ghost) 생성.
 
 청크 레이아웃 :
 
@@ -114,10 +114,10 @@ free 시 커널은 CacheAligned를 보고 **청크 base를 재계산**, `Previou
 
 ### 4.3 lookaside를 통한 검증 우회 및 결정론화
 
-free 한 번으로 겹침이 생기는 게 아니라 **free로 free-list 오염을 통해 alloc으로 실체화**하는 2단 동작. 이때 배경 지식(0.4)의 **lookaside를 활성화 시켜야** 함:
+free 한 번으로 겹침이 생기는 게 아니라 free로 free-list 오염을 통해 alloc으로 실체화하는 2단 동작. 이때 배경 지식(0.4)의 lookaside를 활성화 시켜야 함:
 
-- 오염 청크 free가 **VS 검증을 안 거치기 때문에** `0x139` (BSOD) 안 남
-- **LIFO 재사용** → 방금 free한 오염 슬롯을 다음 alloc이 그대로 받음 → 겹침 확정
+- 오염 청크 free가 VS 검증을 안 거치기 때문에 `0x139` (BSOD) 안 남
+- LIFO 재사용 → 방금 free한 오염 슬롯을 다음 alloc이 그대로 받음 → 겹침 확정
 
 `enableLookaside(...)`가 victim/ghost/vuln 크기를 `0x10000`씩 dynamic lookaside를 켠 뒤 진행함.
 
@@ -137,7 +137,7 @@ void ArbitraryRead(ghost, where, out, size) {
 }
 ```
 
-`g_fake_irp`는 유저랜드 전역. IRP의 `SystemBuffer(+0x18)`만 바꿔가며 아무 커널 주소나 읽음. **오버플로우 재트리거 없이 무한 반복 읽기 가능** → ghost chunk를 쓰는 이유.
+`g_fake_irp`는 유저랜드 전역. IRP의 `SystemBuffer(+0x18)`만 바꿔가며 아무 커널 주소나 읽음. 오버플로우 재트리거 없이 무한 반복 읽기 가능 → ghost chunk를 쓰는 이유.
 
 ---
 
@@ -155,7 +155,7 @@ void ArbitraryRead(ghost, where, out, size) {
 ⑦ 실주소 - nt RVA            = ntoskrnl 베이스
 ```
 
-`DataQueue`와 `FileObject`는 **같은 NP_CCB 구조체의 필드**. leak한 DataQueue 주소에서 `0x48` 빼서 NP_CCB 베이스, 거기 `+0x30`으로 FileObject 접근.
+`DataQueue`와 `FileObject`는 같은 NP_CCB 구조체의 필드. leak한 DataQueue 주소에서 `0x48` 빼서 NP_CCB 베이스, 거기 `+0x30`으로 FileObject 접근.
 
 ntoskrnl 베이스 확보 후 나머지 leak:
 
@@ -163,7 +163,7 @@ ntoskrnl 베이스 확보 후 나머지 leak:
 - `PsInitialSystemProcess` → SYSTEM EPROCESS
 - `ActiveProcessLinks`(0x448) 순회 → 내 EPROCESS → `ThreadListHead`(KPROCESS 0x30) → 내 KTHREAD
 
-> anchor 함수 주의 : npfs는 22H2에서 `ExAllocatePoolWithTag`를 import 안 함(`ExAllocatePool2` 사용). 커널 베이스 계산 anchor는 npfs가 실제 import하는 **`ExFreePoolWithTag`**로 잡아야 함.
+> anchor 함수 주의 : npfs는 22H2에서 `ExAllocatePoolWithTag`를 import 안 함(`ExAllocatePool2` 사용). 커널 베이스 계산 anchor는 npfs가 실제 import하는 `ExFreePoolWithTag`로 잡아야 함.
 
 ---
 
@@ -171,15 +171,15 @@ ntoskrnl 베이스 확보 후 나머지 leak:
 
 ### 6.1 왜 quota인가
 
-이 시점에 우리 손엔 **임의읽기 + POOL_HEADER 제어(ghost) + free 유발**만 존재하고, 쓰기 primitive가 없음.
+이 시점에 우리 손엔 임의읽기 + POOL_HEADER 제어(ghost) + free 유발만 존재하고, 쓰기 primitive가 없음.
 
-pool quota의 **감소** 가 정확히 그 역할을 함 :
+pool quota의 감소 가 정확히 그 역할을 함 :
 
 ```
 quota 청크 free → 커널이 ProcessBilled가 가리키는 프로세스의 QuotaBlock에서 크기만큼 빼기(=메모리에 씀)
 ```
 
-우리가 이미 가진 **POOL_HEADER 제어 + free 유발**로 이 빼기를 임의 주소로 유도 가능.
+우리가 이미 가진 POOL_HEADER 제어 + free 유발로 이 빼기를 임의 주소로 유도 가능.
 
 ### 6.2 ProcessBilled 인코딩
 
@@ -189,26 +189,26 @@ quota 청크는 청구 대상 EPROCESS를 `POOL_HEADER.ProcessBilled`에 XOR 인
 저장값 = EPROCESS ⊕ 청크주소 ⊕ ExpPoolQuotaCookie
 ```
 
-free 시 복호화: `EPROCESS = 저장값 ⊕ 청크주소 ⊕ 쿠키`. 세 값을 arb read로 다 아니 **역으로 위조** 가능 :
+free 시 복호화: `EPROCESS = 저장값 ⊕ 청크주소 ⊕ 쿠키`. 세 값을 arb read로 다 아니 역으로 위조 가능 :
 
 ```
 위조 ProcessBilled = 가짜EPROCESS ⊕ 청크주소 ⊕ 쿠키
 → 복호화하면 커널이 "가짜EPROCESS"를 청구 대상으로 인식
 ```
 
-이 위조 헤더는 **유령 청크의 POOL_HEADER**에 넣음 (겹침 덕에 유저 제어 가능).
+이 위조 헤더는 유령 청크의 POOL_HEADER에 넣음 (겹침 덕에 유저 제어 가능).
 
 ### 6.3 왜 "가짜 EPROCESS"가 필요한가
 
-감소가 떨어지는 최종 주소는 `ProcessBilled` 자체가 아니라 **2단 역참조** 너머임 :
+감소가 떨어지는 최종 주소는 `ProcessBilled` 자체가 아니라 2단 역참조 너머임 :
 
 ```
 ProcessBilled ─(복호화)─► EPROCESS ─(+0x568)─► QuotaBlock ─► 여기서 -1
 ```
 
-target을 조준하려면 `EPROCESS->QuotaBlock` 값이 target이어야 함. 근데 그건 EPROCESS 안의 필드 → **진짜 EPROCESS에서 하려면 그 필드를 덮어써야 하고, 그게 곧 임의쓰기(없음)**.
+target을 조준하려면 `EPROCESS->QuotaBlock` 값이 target이어야 함. 근데 그건 EPROCESS 안의 필드 → 진짜 EPROCESS에서 하려면 그 필드를 덮어써야 하고, 그게 곧 임의쓰기(없음).
 
-해결: 진짜 대신 **가짜 EPROCESS를 파이프 내용 제어로 만들고**, 그 `QuotaBlock(+0x568)`에 처음부터 target을 넣기.
+해결: 진짜 대신 가짜 EPROCESS를 파이프 내용 제어로 만들고, 그 `QuotaBlock(+0x568)`에 처음부터 target을 넣기.
 
 ```c
 setupFakeEprocess:
@@ -218,7 +218,7 @@ setupFakeEprocess:
 
 ### 6.4 가짜 EPROCESS 주소 회수
 
-가짜 EPROCESS를 ProcessBilled 위조에 넣으려면 그 **커널 주소**가 필요함. 파이프에 write하면 커널 어딘가에 생기는데 주소를 모름 → **Flink 추적**으로 회수 :
+가짜 EPROCESS를 ProcessBilled 위조에 넣으려면 그 커널 주소가 필요함. 파이프에 write하면 커널 어딘가에 생기는데 주소를 모름 → Flink 추적으로 회수 :
 
 ```c
 WriteDataToPipe(previous_chunk_pipe, fake_eprocess_buf, 0x800); // entry2 생성 (가짜 EPROCESS 담김)
@@ -227,7 +227,7 @@ ArbitraryRead(ghost, prev_ndqe /*Flink*/, &new_ndqe, 8);
 fake_eprocess = new_ndqe + 0x30 /*NDQE 헤더*/ + 0x50 /*버퍼 내 오프셋*/;
 ```
 
-핵심 : **write로 데이터를 커널에 심고, 주소를 아는 엔트리의 Flink를 따라가 방금 심은 데이터의 주소를 회수**.
+핵심 : write로 데이터를 커널에 심고, 주소를 아는 엔트리의 Flink를 따라가 방금 심은 데이터의 주소를 회수.
 
 ### 6.5 발동
 
@@ -244,7 +244,7 @@ free 순간 :
 3. target에서 -1
 ```
 
-= **임의 주소 -1**.
+= 임의 주소 -1.
 
 ---
 
@@ -252,9 +252,9 @@ free 순간 :
 
 ### 7.1 PreviousMode
 
-`KTHREAD.PreviousMode`(0x232)는 **1바이트**. 현재 syscall이 어디서 왔는지 :
+`KTHREAD.PreviousMode`(0x232)는 1바이트. 현재 syscall이 어디서 왔는지 :
 
-- **1 = UserMode** / **0 = KernelMode**
+- 1 = UserMode / 0 = KernelMode
 
 `NtRead/WriteVirtualMemory`가 이걸 검사 :
 
@@ -266,14 +266,14 @@ if (PreviousMode == UserMode)    // 1
 
 ### 7.2 1→0 = 승격
 
-⑥의 임의감소로 target을 `self_kthread + 0x232`로 잡으면 → **PreviousMode 1→0** (1바이트 감소가 UserMode→KernelMode에 딱 맞음). 이후:
+⑥의 임의감소로 target을 `self_kthread + 0x232`로 잡으면 → PreviousMode 1→0 (1바이트 감소가 UserMode→KernelMode에 딱 맞음). 이후:
 
 ```c
 NtWriteVirtualMemory(GetCurrentProcess(), 커널주소, data, size);  // 커널 임의쓰기
 ReadProcessMemory(GetCurrentProcess(), 커널주소, ...);            // 커널 임의읽기
 ```
 
-좁은 감소 primitive가 **무제한 커널 R/W로 승격**됨. 이후 풀 트릭 불필요.
+좁은 감소 primitive가 무제한 커널 R/W로 승격됨. 이후 풀 트릭 불필요.
 
 ---
 
@@ -287,7 +287,7 @@ Write64(self_eprocess + 0x4B8, system_token);
 
 이제 내 프로세스가 SYSTEM 토큰을 가짐 → `system("cmd.exe")`가 SYSTEM 상속.
 
-**정리(BSOD 회피)**:
+정리(BSOD 회피):
 
 - `FixVsChunkHeaders` — 오버플로우/겹침으로 망가진 이전/다음 청크의 VS 헤더 `UnsafeSize`/`UnsafePrevSize`를 `⊕addr⊕RtlpHpHeapGlobals`로 재인코딩해 복구 → free 시 `0x139` 방지.
 - `RestorePreviousMode` — PreviousMode 0→1 원복 (그 스레드가 정상 동작하기 위함).
@@ -300,15 +300,15 @@ Write64(self_eprocess + 0x4B8, system_token);
 
 | 문제                                    | 원인                                                                                                      | 해결                                                                       |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| kcaH가 파이프와 절대 인접 안 됨 (며칠)  | 비-Nx IOCTL은 **executable NonPagedPool(4KB)**, 파이프는 **NonPagedPoolNx(2MB large)** → 다른 세그먼트 힙 | IOCTL을 **Nx 버전 `0x22204B`**로 전환                                      |
-| Nx로 옮겨도 인접 실패                   | `every-other free`가 LFH 교란                                                                             | 검증된 기법은 LFH 안 씀 → **VS + CacheAligned confusion**으로 전환         |
-| 자작 relative read → 크래시             | 배치 랜덤 → `0x50 PAGE_FAULT` / Flink 조작 → 종료 시 `0x139`                                              | 재트리거식은 불안정 → **ghost chunk 안정적 read**로 전환                   |
-| pending-read 엔트리로 arb write 시도    | `!poolused NpFr = 0`, async read는 groom 가능한 NpFr 안 만듦                                              | 전제 폐기 → **PoolQuota → PreviousMode** 경로로                            |
-| RVA resolve 실패 (`ExpPoolQuotaCookie`) | 시그니처 패턴이 다른 빌드용                                                                               | WinDbg `? nt!X - nt`로 RVA 뽑아 **하드코딩**                               |
-| RVA resolve 실패 (npfs import)          | npfs가 `ExAllocatePoolWithTag` import 안 함 (`ExAllocatePool2` 사용)                                      | anchor를 **`ExFreePoolWithTag`**로 교체                                    |
+| kcaH가 파이프와 절대 인접 안 됨 (며칠)  | 비-Nx IOCTL은 executable NonPagedPool(4KB), 파이프는 NonPagedPoolNx(2MB large) → 다른 세그먼트 힙 | IOCTL을 Nx 버전 `0x22204B`로 전환                                      |
+| Nx로 옮겨도 인접 실패                   | `every-other free`가 LFH 교란                                                                             | 검증된 기법은 LFH 안 씀 → VS + CacheAligned confusion으로 전환         |
+| 자작 relative read → 크래시             | 배치 랜덤 → `0x50 PAGE_FAULT` / Flink 조작 → 종료 시 `0x139`                                              | 재트리거식은 불안정 → ghost chunk 안정적 read로 전환                   |
+| pending-read 엔트리로 arb write 시도    | `!poolused NpFr = 0`, async read는 groom 가능한 NpFr 안 만듦                                              | 전제 폐기 → PoolQuota → PreviousMode 경로로                            |
+| RVA resolve 실패 (`ExpPoolQuotaCookie`) | 시그니처 패턴이 다른 빌드용                                                                               | WinDbg `? nt!X - nt`로 RVA 뽑아 하드코딩                               |
+| RVA resolve 실패 (npfs import)          | npfs가 `ExAllocatePoolWithTag` import 안 함 (`ExAllocatePool2` 사용)                                      | anchor를 `ExFreePoolWithTag`로 교체                                    |
 | 오프셋 검증                             | 참조는 다른 빌드                                                                                          | `dt nt!_EPROCESS/_KTHREAD`로 대조 (`Token 0x4B8`, `PreviousMode 0x232` 등) |
 
-**재트리거식 primitive는 불안정**함. 안정적 R/W엔 **겹침(ghost)으로 반복 가능한 구조**가 필요하고, 빌드별 **오프셋/RVA는 반드시 대상 커널에서 직접 확인**해야 함.
+재트리거식 primitive는 불안정함. 안정적 R/W엔 겹침(ghost)으로 반복 가능한 구조가 필요하고, 빌드별 오프셋/RVA는 반드시 대상 커널에서 직접 확인해야 함.
 
 ---
 
