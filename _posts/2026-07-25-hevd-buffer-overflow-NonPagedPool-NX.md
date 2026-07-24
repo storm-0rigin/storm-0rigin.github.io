@@ -46,7 +46,7 @@ memmove(PoolWithTag, UserBuffer, Size);                            // Size = 유
 
 ### 3.1 WriteFile 하나 = 풀 할당 하나
 
-파이프는 "쓴 데이터를 읽기 전까지 커널이 보관"해야 함. 그 보관 장소가 NonPagedPoolNx 청크(`NP_DATA_QUEUE_ENTRY`).
+파이프는 쓴 데이터를 읽기 전까지 커널이 보관해야 함. 그 보관 장소가 NonPagedPoolNx 청크(`NP_DATA_QUEUE_ENTRY`).
 
 ```
 npfs!NpAddDataQueueEntry:
@@ -64,8 +64,8 @@ npfs!NpAddDataQueueEntry:
 
 파이프의 세 호출이 힙 조작에 그대로 대응됨:
 
-| 유저모드 호출          | 커널 동작                       | 힙 관점           |
-| ---------------------- | ------------------------------- | ----------------- |
+| 유저모드 호출          | 커널 동작                       | 힙 관점       |
+| ---------------------- | ------------------------------- | ------------- |
 | `WriteFile(N)`         | NDQE 청크 alloc + 데이터 채움   | malloc        |
 | `ReadFile` (전부 소비) | 큐에서 빼고 `ExFreePoolWithTag` | free          |
 | `PeekNamedPipe`        | 데이터 복사만 (소비 X)          | read (비파괴) |
@@ -76,7 +76,7 @@ npfs!NpAddDataQueueEntry:
 
 ## 4. Ghost Chunk — 안정적 임의읽기
 
-### 4.1 문제: 파이프 metadata는 커널 소유
+### 4.1 문제 : 파이프 metadata는 커널 소유
 
 임의읽기를 하려면 NDQE를 `EntryType=1`(unbuffered) + `Irp=가짜IRP`로 만들어야 함. 그래야 `PeekNamedPipe`가 `Irp->SystemBuffer`의 임의 주소를 읽어줌.
 
@@ -88,7 +88,7 @@ NP_DATA_QUEUE_ENTRY:
   +0x30 data           ← WriteFile로 제어하는 유일한 부분
 ```
 
-문제: metadata(Irp/EntryType)는 커널 소유. `WriteFile`은 `data`만 바꾸기 때문에 정상 파이프론 임의읽기 불가능.
+문제 : metadata(Irp/EntryType)는 커널 소유. `WriteFile`은 `data`만 바꾸기 때문에 정상 파이프론 임의읽기 불가능.
 
 ### 4.2 CacheAligned Confusion을 통한 청크 겹침 유도
 
@@ -298,15 +298,15 @@ Write64(self_eprocess + 0x4B8, system_token);
 
 이 익스는 삽질의 연속이었음. 주요 지점만.
 
-| 문제                                    | 원인                                                                                                      | 해결                                                                       |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| kcaH가 파이프와 절대 인접 안 됨 (며칠)  | 비-Nx IOCTL은 executable NonPagedPool(4KB), 파이프는 NonPagedPoolNx(2MB large) → 다른 세그먼트 힙 | IOCTL을 Nx 버전 `0x22204B`로 전환                                      |
-| Nx로 옮겨도 인접 실패                   | `every-other free`가 LFH 교란                                                                             | 검증된 기법은 LFH 안 씀 → VS + CacheAligned confusion으로 전환         |
-| 자작 relative read → 크래시             | 배치 랜덤 → `0x50 PAGE_FAULT` / Flink 조작 → 종료 시 `0x139`                                              | 재트리거식은 불안정 → ghost chunk 안정적 read로 전환                   |
-| pending-read 엔트리로 arb write 시도    | `!poolused NpFr = 0`, async read는 groom 가능한 NpFr 안 만듦                                              | 전제 폐기 → PoolQuota → PreviousMode 경로로                            |
-| RVA resolve 실패 (`ExpPoolQuotaCookie`) | 시그니처 패턴이 다른 빌드용                                                                               | WinDbg `? nt!X - nt`로 RVA 뽑아 하드코딩                               |
-| RVA resolve 실패 (npfs import)          | npfs가 `ExAllocatePoolWithTag` import 안 함 (`ExAllocatePool2` 사용)                                      | anchor를 `ExFreePoolWithTag`로 교체                                    |
-| 오프셋 검증                             | 참조는 다른 빌드                                                                                          | `dt nt!_EPROCESS/_KTHREAD`로 대조 (`Token 0x4B8`, `PreviousMode 0x232` 등) |
+| 문제                                    | 원인                                                                                              | 해결                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| kcaH가 파이프와 절대 인접 안 됨 (며칠)  | 비-Nx IOCTL은 executable NonPagedPool(4KB), 파이프는 NonPagedPoolNx(2MB large) → 다른 세그먼트 힙 | IOCTL을 Nx 버전 `0x22204B`로 전환                                          |
+| Nx로 옮겨도 인접 실패                   | `every-other free`가 LFH 교란                                                                     | 검증된 기법은 LFH 안 씀 → VS + CacheAligned confusion으로 전환             |
+| 자작 relative read → 크래시             | 배치 랜덤 → `0x50 PAGE_FAULT` / Flink 조작 → 종료 시 `0x139`                                      | 재트리거식은 불안정 → ghost chunk 안정적 read로 전환                       |
+| pending-read 엔트리로 arb write 시도    | `!poolused NpFr = 0`, async read는 groom 가능한 NpFr 안 만듦                                      | 전제 폐기 → PoolQuota → PreviousMode 경로로                                |
+| RVA resolve 실패 (`ExpPoolQuotaCookie`) | 시그니처 패턴이 다른 빌드용                                                                       | WinDbg `? nt!X - nt`로 RVA 뽑아 하드코딩                                   |
+| RVA resolve 실패 (npfs import)          | npfs가 `ExAllocatePoolWithTag` import 안 함 (`ExAllocatePool2` 사용)                              | anchor를 `ExFreePoolWithTag`로 교체                                        |
+| 오프셋 검증                             | 참조는 다른 빌드                                                                                  | `dt nt!_EPROCESS/_KTHREAD`로 대조 (`Token 0x4B8`, `PreviousMode 0x232` 등) |
 
 재트리거식 primitive는 불안정함. 안정적 R/W엔 겹침(ghost)으로 반복 가능한 구조가 필요하고, 빌드별 오프셋/RVA는 반드시 대상 커널에서 직접 확인해야 함.
 
