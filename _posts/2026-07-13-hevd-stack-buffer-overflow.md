@@ -5,7 +5,7 @@ categories: [Windows Kernel]
 
 ## 1. Vulnerability Research
 
-환경 : Win11 23H2
+환경 : Win11 22H2
 
 ```c
 __int64 __fastcall TriggerBufferOverflowStack(void *UserBuffer, size_t Size)
