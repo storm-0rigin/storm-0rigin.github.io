@@ -281,7 +281,7 @@ rcx에 우리가 심은 값이 들어왔음. 그리고 이 명령은 kCFG 검사
                       FF FF 는 x64 에서 유효하지 않은 opcode
 ```
 
-뒤쪽 FF FF에서 #UD가 발생하므로 반드시 건너 뛰어야함.
+뒤쪽 FF FF에서 #UD(Invalid Opcode)가 발생하므로 반드시 건너 뛰어야함.
 EB는 short jmp opcode이므로, 주소의 하위 두 바이트가 그 역할을 할 수 있음.
 
 ```
