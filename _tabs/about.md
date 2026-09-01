@@ -131,6 +131,15 @@ html[data-mode="light"] .cv { --cv-accent: #b8002e; }
   text-align: right;
 }
 
+/* Right-align the last header cell so it lines up with the digits below.
+   The negative margin cancels the trailing space that letter-spacing adds
+   after the final character, which would otherwise leave it a hair short. */
+.cv .board-head span:last-child,
+.cv .vuln-head span:last-child {
+  text-align: right;
+  margin-right: -0.12em;
+}
+
 /* ---- Disclosures ---- */
 .cv .vulns { display: flex; flex-direction: column; }
 .cv .vuln-head,
