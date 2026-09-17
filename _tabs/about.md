@@ -260,7 +260,7 @@ html[data-mode="light"] .cv { --cv-accent: #b8002e; }
     <span>Rank</span><span>Event</span><span>Team</span><span>Year</span>
   </div>
   <div class="board-row">
-    <span class="rank">8th</span>
+    <span class="rank">8TH</span>
     <span class="event">UofTCTF</span>
     <span class="team">RubiyaLab</span>
     <span class="year">2026</span>
@@ -278,14 +278,14 @@ html[data-mode="light"] .cv { --cv-accent: #b8002e; }
     <span class="year">2026</span>
   </div>
   <div class="board-row">
-    <span class="rank">9th</span>
+    <span class="rank">9TH</span>
     <span class="event">KISIA 정보보호 경진대회</span>
     <span class="team">Whois</span>
     <span class="year">2026</span>
   </div>
 
   <div class="board-row">
-    <span class="rank na">FINAL</span>
+    <span class="rank na">7TH</span>
     <span class="event">HACKSIUM BUSAN</span>
     <span class="team">일단 조니워커 블루를 마셔봐</span>
     <span class="year">2026</span>
